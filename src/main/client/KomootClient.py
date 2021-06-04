@@ -1,8 +1,6 @@
-import re
 import json
+import re
 from typing import Optional, List, Dict, Any
-import gpxpy
-from gpxpy.gpx import GPX
 
 from requests import Session
 
@@ -11,6 +9,9 @@ class KomootClient:
 
     def __init__(self):
         self.session = Session()
+
+    def get_cookies(self) -> Dict[str, str]:
+        return self.session.cookies.get_dict()
 
     def login(self, email: str, password: str) -> str:
         login_response = self.session.post(
