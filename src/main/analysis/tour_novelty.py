@@ -1,20 +1,27 @@
 from typing import List, Optional
 
+from gpxpy.geo import LocationDelta
 from gpxpy.gpx import GPXTrackPoint
 
 from src.main.analysis.util.haversine_distance import distance
 
 
-def calculate_novelty_distance(
+def extract_novelty_sections(
     previous_tour_points: List[GPXTrackPoint],
     new_tour_points: List[GPXTrackPoint],
     min_novelty_distance: float
-) -> float:
+) -> List[List[GPXTrackPoint]]:
+    relevant_previous_tour_points = filter_relevant_previous_tour_points(
+        previous_tour_points,
+        new_tour_points,
+        min_novelty_distance
+    )
+    print(f'reduced {len(previous_tour_points)} to {len(relevant_previous_tour_points)} points')
     novelty_sections = []
     active_novelty_section: Optional[List[GPXTrackPoint]] = None
     for idx, new_tour_point in enumerate(new_tour_points):
         near_previous_tour_points = [
-            point for point in previous_tour_points if
+            point for point in relevant_previous_tour_points if
             distance(point, new_tour_point) < min_novelty_distance
         ]
         if len(near_previous_tour_points):
@@ -30,12 +37,30 @@ def calculate_novelty_distance(
                 active_novelty_section.append(new_tour_point)
     if active_novelty_section:
         novelty_sections.append(active_novelty_section)
-    overall_novelty_distance = 0
-    for novelty_section in novelty_sections:
-        section_novelty_distance = 0
-        last_point = novelty_section[0]
-        for point in novelty_section[1:]:
-            section_novelty_distance += distance(last_point, point)
-            last_point = point
-        overall_novelty_distance += section_novelty_distance
-    return overall_novelty_distance
+    return novelty_sections
+
+
+def filter_relevant_previous_tour_points(
+    previous_tour_points: List[GPXTrackPoint],
+    new_tour_points: List[GPXTrackPoint],
+    min_novelty_distance: float
+) -> List[GPXTrackPoint]:
+    relevant_previous_tour_points = []
+    bounding_box_left = min(
+        (point + LocationDelta(min_novelty_distance, LocationDelta.WEST)).longitude for point in new_tour_points)
+    bounding_box_right = max(
+        (point + LocationDelta(min_novelty_distance, LocationDelta.EAST)).longitude for point in new_tour_points)
+    bounding_box_top = max(
+        (point + LocationDelta(min_novelty_distance, LocationDelta.NORTH)).latitude for point in new_tour_points)
+    bounding_box_bottom = min(
+        (point + LocationDelta(min_novelty_distance, LocationDelta.SOUTH)).latitude for point in new_tour_points)
+    for previous_tour_point in previous_tour_points:
+        if not (previous_tour_point.longitude < bounding_box_left
+                or previous_tour_point.longitude > bounding_box_right
+                or previous_tour_point.latitude > bounding_box_top
+                or previous_tour_point.latitude < bounding_box_bottom):
+            for new_tour_point in new_tour_points:
+                if distance(previous_tour_point, new_tour_point) < min_novelty_distance:
+                    relevant_previous_tour_points.append(previous_tour_point)
+                    break
+    return relevant_previous_tour_points

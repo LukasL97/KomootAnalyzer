@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from gpxpy.gpx import GPXTrackPoint
 
-from src.main.analysis.tour_novelty import calculate_novelty_distance
+from src.main.analysis.tour_novelty import extract_novelty_sections
 
 
 class TourNoveltyTest(TestCase):
@@ -28,4 +28,7 @@ class TourNoveltyTest(TestCase):
             GPXTrackPoint(latitude=50.06028771108519, longitude=8.50820135531572),
             GPXTrackPoint(latitude=50.05714681205976, longitude=8.518758529576173),
         ]
-        self.assertAlmostEqual(calculate_novelty_distance(previous_tour_points, new_tour_points, 50), 4985, delta=2.0)
+        self.assertEqual(
+            extract_novelty_sections(previous_tour_points, new_tour_points, 50),
+            [new_tour_points[1:5], new_tour_points[4:8]]
+        )
