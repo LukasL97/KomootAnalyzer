@@ -17,4 +17,5 @@ def login() -> Response:
     response = make_response(user_id, OK)
     for key, value in client.get_cookies().items():
         response.set_cookie(key, value)
+    response.set_cookie('komoot_user_id', user_id)
     return response
