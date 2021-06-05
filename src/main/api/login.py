@@ -13,7 +13,6 @@ def login() -> Response:
     body = flask.globals.request.json
     client = KomootClient()
     user_id = client.login(body['email'], body['password'])
-    print(client.get_cookies())
     response = make_response(user_id, OK)
     for key, value in client.get_cookies().items():
         response.set_cookie(key, value)
