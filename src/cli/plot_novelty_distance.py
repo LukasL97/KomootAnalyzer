@@ -21,7 +21,7 @@ def get_novelty_distances(tours, threshold):
     previous_points = []
     novelty_distances = []
     for tour in tqdm(tours, desc='Calculate novelty distances'):
-        novelty_sections = extract_novelty_sections(previous_points, tour.get_points(), threshold)
+        novelty_sections = extract_novelty_sections(previous_points, tour.points, threshold)
         novelty_distance = sum(section_length(section) for section in novelty_sections)
         novelty_distances.append(novelty_distance)
         previous_points += flatten(novelty_sections)
