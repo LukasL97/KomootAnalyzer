@@ -1,40 +1,29 @@
-import os
-
 import click
-from tqdm import tqdm
 
-from src.main.analysis.tour_novelty import extract_novelty_sections
-from src.main.analysis.util.haversine_distance import section_length
-from src.main.model.Tour import Tour
-from src.main.util.list_helpers import flatten
+from src.main.client.KomootClient import KomootClient
+from src.main.dao.ToursDAO import ToursDAO
 
-
-def get_tours(tour_dir):
-    tours = []
-    for tour_file in tqdm(os.listdir(tour_dir), desc='Load gpx files'):
-        with open(f'{tour_dir}/{tour_file}', 'r') as gpx_file:
-            tours.append(Tour(gpx_file.read()))
-    return sorted(tours, key=lambda tour: tour.date)
-
-
-def get_novelty_distances(tours, threshold):
-    previous_points = []
-    novelty_distances = []
-    for tour in tqdm(tours, desc='Calculate novelty distances'):
-        novelty_sections = extract_novelty_sections(previous_points, tour.points, threshold)
-        novelty_distance = sum(section_length(section) for section in novelty_sections)
-        novelty_distances.append(novelty_distance)
-        previous_points += flatten(novelty_sections)
-    return novelty_distances
+import pandas as pd
+import matplotlib.pyplot as plt
 
 
 @click.command()
-@click.option('--tour_dir')
-@click.option('--threshold', default=50)
-def main(tour_dir, threshold):
-    tours = get_tours(tour_dir)
-    get_novelty_distances(tours, threshold)
-
+@click.option('--email')
+@click.option('--password')
+def main(email, password):
+    client = KomootClient()
+    user_id = client.login(email, password)
+    tours = ToursDAO.find_by_user(user_id)
+    print(f'Found {len(tours)} tours for this user')
+    data = pd.DataFrame([{
+        'date': tour.date,
+        'distance': tour.distance() / 1000,
+        'novelty': tour.novelty_distance() / 1000
+    } for tour in tours])
+    monthly_data = data.groupby(data['date'].dt.to_period('M')).sum()
+    monthly_data = monthly_data.resample('M').asfreq().fillna(0)
+    monthly_data.plot(kind='bar')
+    plt.show()
 
 
 if __name__ == '__main__':

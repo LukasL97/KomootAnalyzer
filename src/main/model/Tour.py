@@ -7,7 +7,7 @@ import gpxpy
 from gpxpy.gpx import GPXTrackPoint
 
 from src.main.analysis.tour_novelty import extract_novelty_sections
-from src.main.analysis.util.haversine_distance import distance
+from src.main.analysis.util.haversine_distance import section_length
 
 
 class Tour:
@@ -41,12 +41,14 @@ class Tour:
         )
 
     def distance(self) -> float:
-        last_point = self.points[0]
-        overall_distance = 0
-        for point in self.points[1:]:
-            overall_distance += distance(last_point, point)
-            last_point = point
-        return overall_distance
+        return section_length(self.points)
+
+    def novelty_distance(self) -> float:
+        if self.novelties:
+            return sum(section_length(novelty) for novelty in self.novelties)
+        else:
+            return 0
+
 
     def set_novelties(self, previous_tours: List[Tour], min_novelty_distance: float):
         previous_tour_points = [point for tour in previous_tours for novelty in tour.novelties for point in novelty]
