@@ -48,7 +48,7 @@ class ToursSerializer:
             'points': [cls.serialize_point(point) for point in tour.points],
             'novelties': [
                 [cls.serialize_point(point) for point in novelty] for novelty in tour.novelties
-            ] if tour.novelties else None
+            ] if tour.novelties is not None else None
         }
 
     @classmethod
@@ -70,7 +70,7 @@ class ToursSerializer:
             [cls.deserialize_point(point) for point in tour['points']],
             [
                 [cls.deserialize_point(point) for point in novelty] for novelty in tour['novelties']
-            ] if tour['novelties'] else None
+            ] if tour['novelties'] is not None else None
         )
 
     @classmethod
