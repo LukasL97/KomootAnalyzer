@@ -16,12 +16,12 @@ dictConfig({
         'formatter': 'default'
     }},
     'loggers': {
-        'root': {
+        '': {
             'level': 'INFO',
             'handlers': ['wsgi']
         },
         'pykka': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'handlers': ['wsgi']
         }
     }
