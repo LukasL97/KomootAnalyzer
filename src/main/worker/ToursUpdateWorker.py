@@ -12,8 +12,9 @@ from src.main.model.Tour import Tour
 
 class ToursUpdateWorker(ThreadingActor):
 
-    def __init__(self):
+    def __init__(self, user_id: str):
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.user_id = user_id
         super().__init__()
 
     def on_receive(self, message: Any) -> Any:
