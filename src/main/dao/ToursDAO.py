@@ -1,9 +1,8 @@
-from typing import List, Dict, Any, Optional
-
-from gpxpy.gpx import GPXTrackPoint
+from typing import List, Optional
 
 from src.main import mongo
 from src.main.model.Tour import Tour
+from src.main.serialization.TourSerializer import TourSerializer
 
 
 class ToursDAO:
@@ -11,11 +10,11 @@ class ToursDAO:
 
     @classmethod
     def insert_one(cls, tour: Tour):
-        cls.collection.insert_one(ToursSerializer.serialize(tour))
+        cls.collection.insert_one(TourSerializer.serialize(tour))
 
     @classmethod
     def insert_many(cls, tours: List[Tour]):
-        cls.collection.insert_many([ToursSerializer.serialize(tour) for tour in tours])
+        cls.collection.insert_many([TourSerializer.serialize(tour) for tour in tours])
 
     @classmethod
     def update(cls, tour: Tour):
@@ -28,56 +27,9 @@ class ToursDAO:
     @classmethod
     def find_by_id(cls, id: str) -> Optional[Tour]:
         tour = cls.collection.find_one({'id': id})
-        return ToursSerializer.deserialize(tour) if tour else None
+        return TourSerializer.deserialize(tour) if tour else None
 
     @classmethod
     def find_by_user(cls, user: str) -> List[Tour]:
         tours = cls.collection.find({'user': user})
-        return [ToursSerializer.deserialize(tour) for tour in tours]
-
-
-class ToursSerializer:
-
-    @classmethod
-    def serialize(cls, tour: Tour) -> Dict[str, Any]:
-        return {
-            'id': tour.id,
-            'user': tour.user,
-            'name': tour.name,
-            'date': tour.date,
-            'points': [cls.serialize_point(point) for point in tour.points],
-            'novelties': [
-                [cls.serialize_point(point) for point in novelty] for novelty in tour.novelties
-            ] if tour.novelties is not None else None
-        }
-
-    @classmethod
-    def serialize_point(cls, point: GPXTrackPoint) -> Dict[str, Any]:
-        return {
-            'latitude': point.latitude,
-            'longitude': point.longitude,
-            'elevation': point.elevation,
-            'time': point.time
-        }
-
-    @classmethod
-    def deserialize(cls, tour: Dict[str, Any]) -> Tour:
-        return Tour(
-            tour['id'],
-            tour['user'],
-            tour['name'],
-            tour['date'],
-            [cls.deserialize_point(point) for point in tour['points']],
-            [
-                [cls.deserialize_point(point) for point in novelty] for novelty in tour['novelties']
-            ] if tour['novelties'] is not None else None
-        )
-
-    @classmethod
-    def deserialize_point(cls, point: Dict[str, Any]) -> GPXTrackPoint:
-        return GPXTrackPoint(
-            point['latitude'],
-            point['longitude'],
-            point['elevation'],
-            point['time']
-        )
+        return [TourSerializer.deserialize(tour) for tour in tours]
