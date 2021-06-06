@@ -15,9 +15,15 @@ dictConfig({
         'stream': 'ext://flask.logging.wsgi_errors_stream',
         'formatter': 'default'
     }},
-    'root': {
-        'level': 'INFO',
-        'handlers': ['wsgi']
+    'loggers': {
+        'root': {
+            'level': 'INFO',
+            'handlers': ['wsgi']
+        },
+        'pykka': {
+            'level': 'INFO',
+            'handlers': ['wsgi']
+        }
     }
 })
 
