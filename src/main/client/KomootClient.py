@@ -5,6 +5,8 @@ from typing import Optional, List, Dict, Any
 
 from requests import Session
 
+from src.main.client.exception import KomootAuthorizationException
+
 
 class KomootClient:
 
@@ -31,7 +33,8 @@ class KomootClient:
                 'Content-Type': 'application/json'
             }
         )
-        assert login_response.status_code == 200
+        if not login_response.status_code == 200:
+            raise KomootAuthorizationException(f'Failed to login user with email {email}')
         transfer_response = self.session.get('https://account.komoot.com/actions/transfer?type=signin')
         user_id = re.search('user/([0-9]+)/tours', transfer_response.text).group(1)
         self.logger.info(f'Received user id {user_id} for email {email}')

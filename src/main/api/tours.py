@@ -1,4 +1,4 @@
-from http.client import OK, CONFLICT
+from http.client import OK, CONFLICT, BAD_REQUEST
 
 import flask.globals
 from flask import Blueprint, Response, make_response, jsonify
@@ -14,7 +14,8 @@ tours_controller = Blueprint('tours', __name__)
 @tours_controller.route('/tours/sync', methods=['PATCH'])
 def update_tours() -> Response:
     cookies = dict(flask.globals.request.cookies)
-    assert 'komoot_user_id' in cookies.keys()
+    if not 'komoot_user_id' in cookies.keys():
+        return make_response('Cookie komoot_user_id needs to be set', BAD_REQUEST)
     user_id = cookies['komoot_user_id']
     if user_id in [w._actor.user_id for w in ActorRegistry.get_by_class(ToursUpdateWorker)]:
         return make_response(f'Tours update is already running for user with id {user_id}', CONFLICT)
@@ -27,7 +28,8 @@ def update_tours() -> Response:
 @tours_controller.route('/tours', methods=['GET'])
 def get_tours() -> Response:
     cookies = dict(flask.globals.request.cookies)
-    assert 'komoot_user_id' in cookies.keys()
+    if not 'komoot_user_id' in cookies.keys():
+        return make_response('Cookie komoot_user_id needs to be set', BAD_REQUEST)
     tours = ToursDAO.find_by_user(cookies['komoot_user_id'])
     tours = [TourSerializer.serialize(tour) for tour in tours]
     return make_response(jsonify(tours), OK)
