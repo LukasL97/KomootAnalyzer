@@ -1,6 +1,7 @@
 from logging.config import dictConfig
 
 from flask import Flask
+from flask_cors import CORS
 
 from src.main.api.login import login_controller
 from src.main.api.tours import tours_controller
@@ -28,6 +29,12 @@ dictConfig({
 })
 
 app = Flask(__name__)
+
+CORS(
+    app,
+    supports_credentials=True,
+    origins=['http://localhost:3000']
+)
 
 app.register_blueprint(login_controller)
 app.register_blueprint(tours_controller)
