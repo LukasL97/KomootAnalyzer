@@ -28,15 +28,15 @@ class ToursUpdateWorker(ThreadingActor):
         client = KomootClient(cookies=message.session_cookies)
         user_id = message.session_cookies['komoot_user_id']
         komoot_tours = client.get_tours(user_id, tour_type='tour_recorded', sport_types=['touringbicycle', 'racebike'])
-        komoot_tour_ids = [tour['id'] for tour in komoot_tours]
+        komoot_tours = {tour['id']: tour for tour in komoot_tours}
         db_tours = ToursDAO.find_by_user(user_id)
         db_tour_ids = [tour.id for tour in db_tours]
-        komoot_tour_ids_not_in_db = [id for id in komoot_tour_ids if not id in db_tour_ids]
+        komoot_tour_ids_not_in_db = [id for id in komoot_tours.keys() if not id in db_tour_ids]
         self.logger.info(f'Found {len(komoot_tour_ids_not_in_db)} tours missing in DB')
         komoot_tours_not_in_db = []
         for id in komoot_tour_ids_not_in_db:
             gpx = client.get_gpx(id)
-            komoot_tours_not_in_db.append(Tour.from_gpx(id, user_id, gpx))
+            komoot_tours_not_in_db.append(Tour.from_komoot(user_id, komoot_tours[id], gpx))
         self.update_db_with_novelties(db_tours, komoot_tours_not_in_db)
         self.logger.info(f'Stop worker')
         self.stop()

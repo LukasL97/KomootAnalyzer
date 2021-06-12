@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 import gpxpy
 from gpxpy.gpx import GPXTrackPoint
@@ -18,6 +18,11 @@ class Tour:
         user: str,
         name: str,
         date: datetime,
+        distance: float,
+        duration: int,
+        time_in_motion: int,
+        elevation_up: float,
+        elevation_down: float,
         points: List[GPXTrackPoint],
         novelties: Optional[List[List[GPXTrackPoint]]]
     ):
@@ -25,17 +30,27 @@ class Tour:
         self.user: str = user
         self.name: str = name
         self.date: datetime = date
+        self.distance = distance
+        self.duration = duration
+        self.time_in_motion = time_in_motion
+        self.elevation_up = elevation_up
+        self.elevation_down = elevation_down
         self.points: List[GPXTrackPoint] = points
         self.novelties: Optional[List[List[GPXTrackPoint]]] = novelties
 
     @classmethod
-    def from_gpx(cls, id: str, user: str, gpx: str) -> Tour:
+    def from_komoot(cls, user: str, komoot_tour: Dict[str, Any], gpx: str) -> Tour:
         gpx = gpxpy.parse(gpx)
         return cls(
-            id,
+            komoot_tour['id'],
             user,
             gpx.tracks[0].name,
             gpx.tracks[0].segments[0].points[0].time,
+            komoot_tour['distance'],
+            komoot_tour['duration'],
+            komoot_tour['time_in_motion'],
+            komoot_tour['elevation_up'],
+            komoot_tour['elevation_down'],
             gpx.tracks[0].segments[0].points,
             None
         )

@@ -14,6 +14,11 @@ class TourSerializer:
             'user': tour.user,
             'name': tour.name,
             'date': tour.date,
+            'distance': tour.distance,
+            'duration': tour.duration,
+            'time_in_motion': tour.time_in_motion,
+            'elevation_up': tour.elevation_up,
+            'elevation_down': tour.elevation_down,
             'points': [cls.serialize_point(point) for point in tour.points],
             'novelties': [
                 [cls.serialize_point(point) for point in novelty] for novelty in tour.novelties
@@ -36,6 +41,11 @@ class TourSerializer:
             tour['user'],
             tour['name'],
             tour['date'],
+            tour['distance'],
+            tour['duration'],
+            tour['time_in_motion'],
+            tour['elevation_up'],
+            tour['elevation_down'],
             [cls.deserialize_point(point) for point in tour['points']],
             [
                 [cls.deserialize_point(point) for point in novelty] for novelty in tour['novelties']
